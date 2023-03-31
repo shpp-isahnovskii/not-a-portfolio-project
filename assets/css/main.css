@@ -1,22 +1,14 @@
-@import url('https://fonts.googleapis.com/css?family=Saira+Condensed');
+@import url('https://fonts.googleapis.com/css?family=Merienda');
+@import './layout/index.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  color: theme('colors.slate[900]');
-  font-family: 'Saira Condensed', sans-serif;
-  font-size: 1.5rem;
-  line-height: 1.1;
-  scroll-behavior: smooth;
-  text-rendering: optimizeSpeed;
-  background-color: theme('colors.slate[900]');
-  height: 100vh;
-  background: url('~/assets/images/1.avif');
-  background-size: 400px;
-}
 #__nuxt {
-  padding: 1rem 1.5rem 1rem 1.5rem;
-  height: 100vh;
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }

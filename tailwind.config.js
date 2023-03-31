@@ -18,6 +18,9 @@ module.exports = {
         'slate': '0px 0px 20px 10px rgba(0, 255, 255, 0.1);',
       }
     },
+    width: {
+      '13': '3.25rem'
+    },
   },
   plugins: [],
 }

@@ -1,0 +1,1 @@
+<template><footer class="bg-orange-300 w-full h-1"></footer></template>
