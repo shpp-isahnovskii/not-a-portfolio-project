@@ -1,47 +1,46 @@
 <template>
-  <div ref="target">
-    <button
-      class="celebrate-btn bg-emerald-400 hover:bg-emerald-300 text-white font-bold py-2 px-4 rounded-full tracking-wider shadow-lg shadow-emerald-400/50 hover:shadow-emerald-300/50 hover:scale-105 absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%]"
-      @click.prevent="confettiLaunch"
-    >
-      Celebrate now! 🎉
-    </button>
-  </div>
+  <button
+    class="blow-btn text-8xl absolute top-1/2 left-1/2 translate-x-[-50%]"
+    @click.prevent="confettiLaunch"
+  >
+    {{ scene.background }}
+  </button>
 </template>
 
 <script setup lang="ts">
-const FPS = Math.floor(1000 / 60);
+import { storeToRefs } from 'pinia';
+import { useEmojiStore } from 'store';
 
-let target = ref<null | HTMLElement>(null);
+const { scene } = storeToRefs(useEmojiStore());
+
+const FPS = Math.floor(1000 / 60);
+const sceneLifeTime = 180;
+
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 
-let isAction = ref(false);
+const sceneBase = ref({});
+const baseIsEmpty = computed(() => Object.keys(sceneBase.value).length === 0);
 
-const cannon: any[] = [];
-let dx = 3;
+const dx = 10;
+const rotationSpeed = 10;
 
 /* power of the launch */
-let minDy = 15;
-let maxDy = 17;
+const minDy = 10;
+const maxDy = 17;
 
-let gravity = 0.5;
-let projectiles = 20;
-
-//rotation speed in rotationSpeeds
-const maxRS = 35;
-const minRS = 5;
+const gravity = 0.5;
+const projectiles = 20;
 
 onMounted(() => {
   canvasInit();
-  confettiInit();
 });
 
 const canvasInit = () => {
   canvas = document.createElement('canvas');
-  canvas.width = 600;
-  canvas.height = 600;
-  (target.value as HTMLElement).appendChild(canvas);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  (document.getElementById('__nuxt') as HTMLElement).appendChild(canvas);
   (ctx as any) = canvas.getContext('2d');
 
   ctx.textBaseline = 'middle';
@@ -50,70 +49,118 @@ const canvasInit = () => {
 };
 
 const confettiLaunch = () => {
-  isAction.value = !isAction.value;
-  frameTick();
+  const stackIsEmpty = baseIsEmpty.value;
+  addNewCannon();
+  if (stackIsEmpty) frameTick();
 };
 
-const confettiInit = () => {
-  while (projectiles--) {
-    cannon.push({
-      name: '🎉',
-      x: canvas.width/2,
-      y: canvas.height/2,
+const addNewCannon = () => {
+  const randomId = Math.random().toString().replace('0.', '');
+  (sceneBase.value as any)[randomId] = cannonInit();
+};
+
+const cannonInit = () => {
+  let grapeshot = [];
+  let particles = projectiles;
+
+  while (particles--) {
+    grapeshot.push({
+      name: scene.value.emoji,
+      x: canvas.width / 2,
+      y: canvas.height / 2,
       dx: randomRange(-dx, dx),
       dy: randomRange(-minDy, -maxDy),
-      rotationSpeed: randomRange(minRS, maxRS),
+      angle: 0,
+      lifeTime: 0,
     });
   }
+  return grapeshot;
+};
+
+const drawScene = () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawItems();
+};
+
+const drawItems = () => {
+  Object.keys(sceneBase.value).forEach((key: string) => {
+    if (isAnimationOver(key)) {
+      deleteCanon(key);
+      return;
+    }
+
+    (sceneBase.value as any)[key].forEach((item: Object, index: number) => {
+      drawItem(item);
+      (sceneBase.value as any)[key][index] = updateItemPhysics(item);
+    });
+  });
 };
 
 const drawItem = (element: any) => {
   ctx.translate(element.x, element.y);
-  ctx.rotate((element.rotationSpeed * Math.PI) / 180);
-
+  ctx.rotate((element.angle * Math.PI) / 180);
   ctx.strokeText(element.name, 0, 0);
-
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-};
-
-const frameTick = async () => {
-  if (isAction.value) {
-
-    drawScene();
-
-    setTimeout(() => {
-      window.requestAnimationFrame(frameTick);
-    }, FPS);
-  }
-};
-
-/* the scene */
-const drawScene = () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  cannon.forEach((item: Object, index: number) => {
-    drawItem(item);
-    cannon[index] = updateItemPhysics(item);
-  });
 };
 
 const updateItemPhysics = (item: any) => {
   item.y = item.y + item.dy;
   item.x = item.x + item.dx;
   item.dy = item.dy + gravity;
-  item.rotationSpeed = item.rotationSpeed + 1;
+  item.angle += rotationSpeed * Math.sign(item.dx);
+  item.lifeTime++;
+
   return item;
+};
+
+const frameTick = async () => {
+  if (baseIsEmpty.value) return;
+  drawScene();
+  setTimeout(() => {
+    window.requestAnimationFrame(frameTick);
+  }, FPS);
+};
+
+const isAnimationOver = (id: string) =>
+  (sceneBase.value as any)[id][0].lifeTime >= sceneLifeTime;
+
+const deleteCanon = (id: string) => {
+  delete (sceneBase.value as any)[id];
 };
 
 const randomRange = (min: number, max: number) => {
   return Math.random() * (max - min + 1) + min;
 };
-
-
-
 </script>
 
 <style>
 canvas {
-  border: 1px solid blue;
+  pointer-events: none;
+  position: fixed;
+  z-index: 10;
+}
+.blow-btn:hover {
+  animation: 0.2s linear example infinite;
+}
+
+@keyframes example {
+  0% {
+    padding-left: 0px;
+  }
+  20% {
+    padding-left: -4px;
+  }
+  40% {
+    padding-left: 5px;
+  }
+  60% {
+    padding-left: -4px;
+  }
+  80% {
+    padding-left: 3px;
+  }
+  100% {
+    padding-left: 0px;
+  }
 }
 </style>
