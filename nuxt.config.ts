@@ -2,6 +2,9 @@ import { fileURLToPath } from "url";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  app: {
+    baseURL: '/not-a-portfolio-project/',
+  },
   modules: [
     '@pinia/nuxt',
   ],
