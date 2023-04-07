@@ -1,20 +1,20 @@
-import { fileURLToPath } from "url";
+import { fileURLToPath } from 'url';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  target: 'static',
   app: {
     baseURL: '/not-a-portfolio-project/',
+    head: {
+      title: 'emoji confetti',
+      meta: [{ 'http-equiv': 'Permissions-Policy' }, {'content': 'interest-cohort=()'}], //cross origin control gh-pages fix
+    },
   },
-  modules: [
-    '@pinia/nuxt',
-  ],
+  modules: ['@pinia/nuxt'],
   pinia: {
-    autoImports: [
-      'defineStore',
-    ],
+    autoImports: ['defineStore'],
   },
   css: ['~/assets/css/main.css'],
-  buildModules: ['@nuxtjs/style-resources'],
   postcss: {
     plugins: {
       tailwindcss: {},
@@ -22,6 +22,6 @@ export default defineNuxtConfig({
     },
   },
   alias: {
-    'store': fileURLToPath(new URL('./store', import.meta.url))
-  }
+    store: fileURLToPath(new URL('./store', import.meta.url)),
+  },
 });

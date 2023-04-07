@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "deploy": "gh-pages --dotfiles -d .output/public",
+    "deploy": "gh-pages -d .output/public -t true echo . > ./.output/public/.nojekyll",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

@@ -3,4 +3,3 @@
   <main-section />
   <footer-section />
 </template>
-
