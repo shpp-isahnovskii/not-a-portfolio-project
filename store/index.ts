@@ -1,14 +1,19 @@
 import { defineStore } from 'pinia';
 
-export interface SceneInterface {
-  emoji: string,
-  background: string,
-}
+import { emojiSet } from '~~/constants/emoji-set';
+import { SceneInterface } from '~~/interfaces/scene-interface';
 
 export const useEmojiStore = defineStore('emoji', () => {
   const scene = ref<SceneInterface>({
-    emoji:'💥',
-    background: '🗻',
+    emoji: emojiSet.volcano.emoji,
+    background: emojiSet.volcano.background,
   });
-  return { scene };
+
+  const setScene = (key: string) => {
+    scene.value = {
+      emoji: emojiSet[key].emoji,
+      background: emojiSet[key].background,
+    };
+  };
+  return { scene, setScene };
 });

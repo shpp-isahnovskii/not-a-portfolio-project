@@ -11,6 +11,8 @@
 import { storeToRefs } from 'pinia';
 import { useEmojiStore } from 'store';
 
+import { ConfettiItem } from '~~/interfaces/confetti-item';
+
 const { scene } = storeToRefs(useEmojiStore());
 
 const FPS = Math.floor(1000 / 60);
@@ -19,8 +21,8 @@ const sceneLifeTime = 180;
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 
-const sceneBase = ref({});
-const baseIsEmpty = computed(() => Object.keys(sceneBase.value).length === 0);
+const sceneBase: Ref<{ [key: string]: ConfettiItem[] }> = ref({});
+const baseIsEmpty: ComputedRef<boolean> = computed(() => Object.keys(sceneBase.value).length === 0);
 
 const dx = 10;
 const rotationSpeed = 10;
@@ -32,20 +34,29 @@ const maxDy = 17;
 const gravity = 0.5;
 const projectiles = 20;
 
+const resizeObserver = () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.font = '30px arial';
+};
+
 onMounted(() => {
   canvasInit();
+  window.addEventListener('resize', resizeObserver);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resizeObserver);
 });
 
 const canvasInit = () => {
   canvas = document.createElement('canvas');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  /* entry point */
   (document.getElementById('__nuxt') as HTMLElement).appendChild(canvas);
-  (ctx as any) = canvas.getContext('2d');
-
-  ctx.textBaseline = 'middle';
-  ctx.textAlign = 'center';
-  ctx.font = '30px arial';
+  resizeObserver();
 };
 
 const confettiLaunch = () => {
@@ -55,17 +66,17 @@ const confettiLaunch = () => {
 };
 
 const addNewCannon = () => {
-  const randomId = Math.random().toString().replace('0.', '');
-  (sceneBase.value as any)[randomId] = cannonInit();
+  const randomId: string = Math.random().toString().replace('0.', '');
+  sceneBase.value[randomId] = cannonInit();
 };
 
-const cannonInit = () => {
-  let grapeshot = [];
+const cannonInit = (): ConfettiItem[] => {
+  let grapeshot: ConfettiItem[] = [];
   let particles = projectiles;
 
   while (particles--) {
     grapeshot.push({
-      name: scene.value.emoji,
+      name: scene.value.emoji[particles % scene.value.emoji.length],
       x: canvas.width / 2,
       y: canvas.height / 2,
       dx: randomRange(-dx, dx),
@@ -82,28 +93,28 @@ const drawScene = () => {
   drawItems();
 };
 
-const drawItems = () => {
+const drawItems = (): void => {
   Object.keys(sceneBase.value).forEach((key: string) => {
     if (isAnimationOver(key)) {
       deleteCanon(key);
       return;
     }
 
-    (sceneBase.value as any)[key].forEach((item: Object, index: number) => {
+    sceneBase.value[key].forEach((item: ConfettiItem, index: number) => {
       drawItem(item);
-      (sceneBase.value as any)[key][index] = updateItemPhysics(item);
+      sceneBase.value[key][index] = updateItemPhysics(item);
     });
   });
 };
 
-const drawItem = (element: any) => {
+const drawItem = (element: ConfettiItem) => {
   ctx.translate(element.x, element.y);
   ctx.rotate((element.angle * Math.PI) / 180);
   ctx.strokeText(element.name, 0, 0);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 };
 
-const updateItemPhysics = (item: any) => {
+const updateItemPhysics = (item: ConfettiItem): ConfettiItem => {
   item.y = item.y + item.dy;
   item.x = item.x + item.dx;
   item.dy = item.dy + gravity;
@@ -113,7 +124,7 @@ const updateItemPhysics = (item: any) => {
   return item;
 };
 
-const frameTick = async () => {
+const frameTick = (): void => {
   if (baseIsEmpty.value) return;
   drawScene();
   setTimeout(() => {
@@ -122,13 +133,13 @@ const frameTick = async () => {
 };
 
 const isAnimationOver = (id: string) =>
-  (sceneBase.value as any)[id][0].lifeTime >= sceneLifeTime;
+  sceneBase.value[id][0].lifeTime >= sceneLifeTime;
 
 const deleteCanon = (id: string) => {
-  delete (sceneBase.value as any)[id];
+  delete sceneBase.value[id];
 };
 
-const randomRange = (min: number, max: number) => {
+const randomRange = (min: number, max: number): number => {
   return Math.random() * (max - min + 1) + min;
 };
 </script>
