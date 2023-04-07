@@ -21,7 +21,7 @@ yarn run dev
 ## Production
 
 ```bash
-yarn yarn run deploy
+yarn run deploy
 ```
 For first time adding to the remote I've used this instruction:
 
