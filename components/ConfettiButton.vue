@@ -54,6 +54,10 @@ onBeforeUnmount(() => {
 
 const canvasInit = () => {
   canvas = document.createElement('canvas');
+  if (!canvas.getContext) {
+    window.alert("HTML Canvas is not supported by your browser");
+    return;
+  }
   /* entry point */
   (document.getElementById('__nuxt') as HTMLElement).appendChild(canvas);
   resizeObserver();
